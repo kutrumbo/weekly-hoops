@@ -82,7 +82,7 @@ export default function AttendanceToggle({
             onChange={(e) => setNote(e.target.value)}
             placeholder="e.g., Might be 10 min late"
             disabled={gameLocked}
-            className="flex-1 border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+            className="flex-1 border border-gray-300 rounded-md px-3 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
           />
           <button
             onClick={handleSaveNote}

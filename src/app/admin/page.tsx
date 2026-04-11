@@ -199,7 +199,7 @@ export default function AdminPage() {
               <select
                 value={gameDay}
                 onChange={(e) => setGameDay(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500"
               >
                 {days.map((d) => (
                   <option key={d} value={d}>
@@ -216,7 +216,7 @@ export default function AdminPage() {
                 type="time"
                 value={gameTime}
                 onChange={(e) => setGameTime(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500"
               />
             </div>
           </div>
@@ -229,7 +229,7 @@ export default function AdminPage() {
               value={gameLocation}
               onChange={(e) => setGameLocation(e.target.value)}
               placeholder="e.g., Downtown YMCA Court 2"
-              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
+              className="w-full border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500"
             />
           </div>
           <button
@@ -253,7 +253,7 @@ export default function AdminPage() {
                 type="date"
                 value={newGameDate}
                 onChange={(e) => setNewGameDate(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500"
               />
             </div>
             <div className="w-32">
@@ -264,7 +264,7 @@ export default function AdminPage() {
                 type="time"
                 value={newGameTime}
                 onChange={(e) => setNewGameTime(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500"
               />
             </div>
             <button
