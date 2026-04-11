@@ -31,36 +31,58 @@ export default function AttendanceToggle({
     });
   };
 
+  const handleRemoveNote = () => {
+    setNote("");
+    setShowNote(false);
+    startTransition(() => {
+      updateNote(gameId, "");
+    });
+  };
+
   return (
-    <div className="bg-white rounded-lg shadow p-4">
-      <p className="text-sm font-medium text-gray-500 mb-3">Your status</p>
-      <div className="flex gap-2 mb-3">
+    <div
+      className="rounded-[20px] p-6"
+      style={{
+        background: "white",
+        border: "1px solid #e7e5e4",
+        boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
+      }}
+    >
+      <p
+        className="text-[13px] font-semibold uppercase mb-3"
+        style={{ color: "#a8a29e", letterSpacing: "0.5px" }}
+      >
+        Your Status
+      </p>
+      <div className="flex gap-2.5">
         <button
           onClick={() => handleToggle("in")}
           disabled={gameLocked || isPending}
-          className={`flex-1 py-3 rounded-lg font-semibold text-lg transition-colors ${
+          className="flex-1 py-4 rounded-[14px] font-bold text-base transition-all"
+          style={
             currentStatus === "in"
-              ? "bg-green-600 text-white"
-              : "bg-gray-100 text-gray-600 hover:bg-green-50 hover:text-green-700"
-          } ${gameLocked ? "opacity-50 cursor-not-allowed" : ""}`}
+              ? { border: "2px solid #22c55e", background: "#f0fdf4", color: "#166534" }
+              : { border: "2px solid #e7e5e4", background: "white", color: "#78716c" }
+          }
         >
-          I&apos;m In
+          ✋ I&apos;m In
         </button>
         <button
           onClick={() => handleToggle("out")}
           disabled={gameLocked || isPending}
-          className={`flex-1 py-3 rounded-lg font-semibold text-lg transition-colors ${
+          className="flex-1 py-4 rounded-[14px] font-bold text-base transition-all"
+          style={
             currentStatus === "out"
-              ? "bg-red-600 text-white"
-              : "bg-gray-100 text-gray-600 hover:bg-red-50 hover:text-red-700"
-          } ${gameLocked ? "opacity-50 cursor-not-allowed" : ""}`}
+              ? { border: "2px solid #ef4444", background: "#fef2f2", color: "#991b1b" }
+              : { border: "2px solid #e7e5e4", background: "white", color: "#78716c" }
+          }
         >
-          I&apos;m Out
+          👋 I&apos;m Out
         </button>
       </div>
 
       {gameLocked && (
-        <p className="text-sm text-amber-600 mb-2">
+        <p className="text-sm mt-3" style={{ color: "#d97706" }}>
           This game is locked. Attendance can no longer be changed.
         </p>
       )}
@@ -68,29 +90,55 @@ export default function AttendanceToggle({
       {!showNote && !gameLocked && (
         <button
           onClick={() => setShowNote(true)}
-          className="text-sm text-gray-500 hover:text-gray-700"
+          className="text-sm mt-3 font-medium"
+          style={{ color: "#78716c" }}
         >
           + Add a note
         </button>
       )}
 
       {showNote && (
-        <div className="flex gap-2 mt-1">
+        <div className="flex gap-2 mt-3">
           <input
             type="text"
             value={note}
             onChange={(e) => setNote(e.target.value)}
             placeholder="e.g., Might be 10 min late"
             disabled={gameLocked}
-            className="flex-1 border border-gray-300 rounded-md px-3 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+            className="flex-1 rounded-xl px-3.5 py-2.5 text-[13px] transition-all"
+            style={{
+              border: "2px solid #e7e5e4",
+              background: "#fafaf9",
+              color: "#1c1917",
+              outline: "none",
+            }}
+            onFocus={(e) => {
+              e.target.style.borderColor = "#f97316";
+              e.target.style.background = "white";
+            }}
+            onBlur={(e) => {
+              e.target.style.borderColor = "#e7e5e4";
+              e.target.style.background = "#fafaf9";
+            }}
           />
           <button
             onClick={handleSaveNote}
             disabled={gameLocked || isPending}
-            className="px-3 py-1.5 bg-gray-200 rounded-md text-sm font-medium hover:bg-gray-300 transition-colors disabled:opacity-50"
+            className="px-4 py-2.5 rounded-xl text-[13px] font-semibold text-white transition-all disabled:opacity-50"
+            style={{ background: "#1c1917" }}
           >
             Save
           </button>
+          {!gameLocked && (
+            <button
+              onClick={handleRemoveNote}
+              disabled={isPending}
+              className="px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-all disabled:opacity-50"
+              style={{ color: "#a8a29e" }}
+            >
+              ✕
+            </button>
+          )}
         </div>
       )}
     </div>

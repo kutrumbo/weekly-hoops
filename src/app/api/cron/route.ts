@@ -1,8 +1,64 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-// This endpoint uses the service role key to bypass RLS
-// It's called by Vercel Cron (or any external cron service)
+// Hardcoded timezone for game scheduling
+const TIMEZONE = "America/Los_Angeles";
+
+/**
+ * Get the current date/time in Pacific Time as component parts.
+ */
+function nowInPacific() {
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone: TIMEZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    weekday: "short",
+    hour12: false,
+  });
+  const parts = Object.fromEntries(
+    formatter.formatToParts(new Date()).map((p) => [p.type, p.value])
+  );
+  return {
+    dayOfWeek: new Date(
+      Date.parse(`${parts.month}/${parts.day}/${parts.year}`)
+    ).getDay(),
+    year: Number(parts.year),
+    month: Number(parts.month),
+    day: Number(parts.day),
+    hour: Number(parts.hour),
+    minute: Number(parts.minute),
+  };
+}
+
+/**
+ * Build a Date object representing a specific date + time in Pacific Time.
+ * We do this by constructing an ISO string with the Pacific offset,
+ * which JavaScript will parse into the correct UTC instant.
+ */
+function dateInPacific(
+  year: number,
+  month: number,
+  day: number,
+  hours: number,
+  minutes: number
+): Date {
+  // Create a temporary date to determine DST offset for Pacific
+  const tempDate = new Date(
+    Date.UTC(year, month - 1, day, hours, minutes)
+  );
+  const utcStr = tempDate.toLocaleString("en-US", { timeZone: "UTC" });
+  const ptStr = tempDate.toLocaleString("en-US", { timeZone: TIMEZONE });
+  const utcDate = new Date(utcStr);
+  const ptDate = new Date(ptStr);
+  const offsetMs = utcDate.getTime() - ptDate.getTime();
+
+  // Construct the actual date: local Pacific time + offset = UTC
+  return new Date(Date.UTC(year, month - 1, day, hours, minutes) + offsetMs);
+}
+
 export async function GET(request: Request) {
   // Verify cron secret
   const authHeader = request.headers.get("authorization");
@@ -28,7 +84,6 @@ export async function GET(request: Request) {
   const gameDay = settingsMap.get("game_day") ?? "Wednesday";
   const gameTime = settingsMap.get("game_time") ?? "19:00";
 
-  // Calculate next occurrence of the game day
   const dayIndex = [
     "Sunday",
     "Monday",
@@ -40,35 +95,53 @@ export async function GET(request: Request) {
   ].indexOf(gameDay);
 
   if (dayIndex === -1) {
-    return NextResponse.json({ error: "Invalid game_day setting" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Invalid game_day setting" },
+      { status: 500 }
+    );
   }
 
-  const now = new Date();
-  const today = now.getDay();
-  let daysUntilGame = dayIndex - today;
+  // Calculate using Pacific Time
+  const pacific = nowInPacific();
+  let daysUntilGame = dayIndex - pacific.dayOfWeek;
   if (daysUntilGame < 0) daysUntilGame += 7;
-  if (daysUntilGame === 0) {
-    // If today is game day, check if we already have a game for today
-    // If so, schedule for next week
-  }
 
-  const nextGameDate = new Date(now);
-  nextGameDate.setDate(now.getDate() + daysUntilGame);
+  // Target date in Pacific
+  const targetDate = new Date(
+    Date.UTC(pacific.year, pacific.month - 1, pacific.day)
+  );
+  targetDate.setUTCDate(targetDate.getUTCDate() + daysUntilGame);
 
-  // Set the time
   const [hours, minutes] = gameTime.split(":").map(Number);
-  nextGameDate.setHours(hours, minutes, 0, 0);
 
-  // If the game time has already passed today, schedule for next week
-  if (nextGameDate <= now) {
+  const nextGameDate = dateInPacific(
+    targetDate.getUTCFullYear(),
+    targetDate.getUTCMonth() + 1,
+    targetDate.getUTCDate(),
+    hours,
+    minutes
+  );
+
+  // If game time has already passed (in Pacific), schedule for next week
+  if (nextGameDate <= new Date()) {
     nextGameDate.setDate(nextGameDate.getDate() + 7);
   }
 
-  // Check if a game already exists for this date (within the same day)
-  const startOfDay = new Date(nextGameDate);
-  startOfDay.setHours(0, 0, 0, 0);
-  const endOfDay = new Date(nextGameDate);
-  endOfDay.setHours(23, 59, 59, 999);
+  // Check if a game already exists for this date (within the same day in Pacific)
+  const startOfDay = dateInPacific(
+    targetDate.getUTCFullYear(),
+    targetDate.getUTCMonth() + 1,
+    targetDate.getUTCDate(),
+    0,
+    0
+  );
+  const endOfDay = dateInPacific(
+    targetDate.getUTCFullYear(),
+    targetDate.getUTCMonth() + 1,
+    targetDate.getUTCDate(),
+    23,
+    59
+  );
 
   const { data: existingGames } = await supabase
     .from("games")

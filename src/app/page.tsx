@@ -1,5 +1,6 @@
 import AppShell from "@/components/AppShell";
 import AttendanceToggle from "@/components/AttendanceToggle";
+import { FormattedDate, FormattedTime } from "@/components/FormattedDate";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import type { Game, AttendanceWithPlayer } from "@/lib/types";
@@ -47,57 +48,104 @@ export default async function HomePage() {
   const outCount = attendanceList.filter((a) => a.status === "out").length;
   const pendingCount = attendanceList.filter((a) => a.status === "pending").length;
 
-  const formatDate = (dateStr: string) => {
-    const d = new Date(dateStr);
-    return d.toLocaleDateString("en-US", {
-      weekday: "long",
-      month: "long",
-      day: "numeric",
-    });
-  };
+  const inList = attendanceList.filter((a) => a.status === "in");
+  const outList = attendanceList.filter((a) => a.status === "out");
+  const pendingList = attendanceList.filter((a) => a.status === "pending");
 
-  const formatTime = (dateStr: string) => {
-    const d = new Date(dateStr);
-    return d.toLocaleTimeString("en-US", {
-      hour: "numeric",
-      minute: "2-digit",
-    });
+  const statusBadge = (status: string) => {
+    if (status === "open") return { bg: "rgba(34,197,94,0.15)", color: "#4ade80" };
+    if (status === "locked") return { bg: "rgba(251,191,36,0.15)", color: "#fbbf24" };
+    return { bg: "rgba(239,68,68,0.15)", color: "#f87171" };
   };
 
   return (
     <AppShell>
       {!game ? (
-        <div className="text-center py-12 text-gray-500">
-          <p className="text-lg">No upcoming games scheduled.</p>
+        <div className="text-center py-16" style={{ color: "#a8a29e" }}>
+          <div className="text-5xl mb-4">🏀</div>
+          <p className="text-lg font-semibold" style={{ color: "#78716c" }}>
+            No upcoming games scheduled
+          </p>
           <p className="text-sm mt-1">Check back later or ask an admin to create one.</p>
         </div>
       ) : (
         <div className="space-y-4">
-          {/* Game Header */}
-          <div className="bg-white rounded-lg shadow p-4">
-            <div className="flex items-center justify-between mb-1">
-              <h2 className="text-xl font-bold">{formatDate(game.game_date)}</h2>
+          {/* Scoreboard */}
+          <div
+            className="rounded-[20px] px-5 py-4 text-white relative overflow-hidden"
+            style={{ background: "#1c1917" }}
+          >
+            <span
+              className="absolute -top-5 -right-2.5 text-[80px] opacity-[0.06] pointer-events-none"
+              aria-hidden="true"
+            >
+              🏀
+            </span>
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-extrabold">
+                  <FormattedDate date={game.game_date} />
+                </h2>
+                <p className="text-[13px]" style={{ color: "#a8a29e" }}>
+                  <FormattedTime date={game.game_date} />
+                  {locationSetting?.value ? ` · ${locationSetting.value}` : ""}
+                </p>
+              </div>
               <span
-                className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                  game.status === "open"
-                    ? "bg-green-100 text-green-700"
-                    : game.status === "locked"
-                    ? "bg-amber-100 text-amber-700"
-                    : "bg-red-100 text-red-700"
-                }`}
+                className="text-[11px] font-bold uppercase px-2.5 py-1 rounded-full"
+                style={{
+                  background: statusBadge(game.status).bg,
+                  color: statusBadge(game.status).color,
+                  letterSpacing: "0.5px",
+                }}
               >
                 {game.status}
               </span>
             </div>
-            <p className="text-gray-500">
-              {formatTime(game.game_date)}
-              {locationSetting?.value ? ` · ${locationSetting.value}` : ""}
-            </p>
 
-            {game.status === "cancelled" && (
-              <p className="mt-2 text-red-600 font-medium">
+            {game.status === "cancelled" ? (
+              <p className="mt-3 text-sm font-medium" style={{ color: "#f87171" }}>
                 This game has been cancelled.
               </p>
+            ) : (
+              <div
+                className="flex justify-center gap-6 mt-3.5 pt-3.5"
+                style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}
+              >
+                <div className="text-center">
+                  <p className="text-[28px] font-black" style={{ color: "#4ade80" }}>
+                    {inCount}
+                  </p>
+                  <p
+                    className="text-[11px] font-semibold uppercase"
+                    style={{ color: "#78716c", letterSpacing: "0.5px" }}
+                  >
+                    In
+                  </p>
+                </div>
+                <div className="text-center">
+                  <p className="text-[28px] font-black" style={{ color: "#f87171" }}>
+                    {outCount}
+                  </p>
+                  <p
+                    className="text-[11px] font-semibold uppercase"
+                    style={{ color: "#78716c", letterSpacing: "0.5px" }}
+                  >
+                    Out
+                  </p>
+                </div>
+                <div className="text-center">
+                  <p className="text-[28px] font-black" style={{ color: "#78716c" }}>
+                    {pendingCount}
+                  </p>
+                  <p
+                    className="text-[11px] font-semibold uppercase"
+                    style={{ color: "#78716c", letterSpacing: "0.5px" }}
+                  >
+                    Pending
+                  </p>
+                </div>
+              </div>
             )}
           </div>
 
@@ -111,67 +159,117 @@ export default async function HomePage() {
             />
           )}
 
-          {/* Attendance Summary */}
-          <div className="flex gap-3">
-            <div className="flex-1 bg-green-50 rounded-lg p-3 text-center">
-              <p className="text-2xl font-bold text-green-700">{inCount}</p>
-              <p className="text-xs text-green-600">In</p>
-            </div>
-            <div className="flex-1 bg-red-50 rounded-lg p-3 text-center">
-              <p className="text-2xl font-bold text-red-700">{outCount}</p>
-              <p className="text-xs text-red-600">Out</p>
-            </div>
-            <div className="flex-1 bg-gray-50 rounded-lg p-3 text-center border">
-              <p className="text-2xl font-bold text-gray-500">{pendingCount}</p>
-              <p className="text-xs text-gray-500">Pending</p>
-            </div>
-          </div>
-
           {/* Roster */}
-          <div className="bg-white rounded-lg shadow">
-            <h3 className="px-4 pt-4 pb-2 font-semibold text-gray-700">Roster</h3>
-            <div className="divide-y divide-gray-100">
-              {attendanceList
-                .sort((a, b) => {
-                  const order = { in: 0, pending: 1, out: 2 };
-                  return order[a.status] - order[b.status];
-                })
-                .map((a) => (
+          <div
+            className="rounded-[20px] overflow-hidden"
+            style={{
+              background: "white",
+              border: "1px solid #e7e5e4",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
+            }}
+          >
+            {/* Playing section */}
+            {inList.length > 0 && (
+              <>
+                <p
+                  className="text-[11px] font-bold uppercase px-6 pt-5 pb-2"
+                  style={{ color: "#a8a29e", letterSpacing: "0.5px" }}
+                >
+                  Playing ({inCount})
+                </p>
+                {inList.map((a) => (
                   <div
                     key={a.id}
-                    className="px-4 py-3 flex items-center justify-between"
+                    className="flex items-center gap-2.5 px-6 py-3"
+                    style={{ borderTop: "1px solid #f5f5f4" }}
                   >
-                    <div>
-                      <p className="font-medium text-sm">
+                    <div
+                      className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                      style={{ background: "#22c55e" }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold" style={{ color: "#1c1917" }}>
                         {a.players.name || a.players.email}
                       </p>
                       {a.note && (
-                        <p className="text-xs text-gray-500 mt-0.5">{a.note}</p>
+                        <p className="text-xs" style={{ color: "#a8a29e" }}>
+                          {a.note}
+                        </p>
                       )}
                     </div>
-                    <span
-                      className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                        a.status === "in"
-                          ? "bg-green-100 text-green-700"
-                          : a.status === "out"
-                          ? "bg-red-100 text-red-700"
-                          : "bg-gray-100 text-gray-500"
-                      }`}
-                    >
-                      {a.status === "in"
-                        ? "In"
-                        : a.status === "out"
-                        ? "Out"
-                        : "Pending"}
-                    </span>
                   </div>
                 ))}
-              {attendanceList.length === 0 && (
-                <p className="px-4 py-6 text-center text-gray-400 text-sm">
-                  No players yet.
+              </>
+            )}
+
+            {/* Not Playing section */}
+            {outList.length > 0 && (
+              <>
+                <p
+                  className="text-[11px] font-bold uppercase px-6 pt-5 pb-2"
+                  style={{ color: "#a8a29e", letterSpacing: "0.5px" }}
+                >
+                  Not Playing ({outCount})
                 </p>
-              )}
-            </div>
+                {outList.map((a) => (
+                  <div
+                    key={a.id}
+                    className="flex items-center gap-2.5 px-6 py-3"
+                    style={{ borderTop: "1px solid #f5f5f4" }}
+                  >
+                    <div
+                      className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                      style={{ background: "#ef4444" }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold" style={{ color: "#1c1917" }}>
+                        {a.players.name || a.players.email}
+                      </p>
+                      {a.note && (
+                        <p className="text-xs" style={{ color: "#a8a29e" }}>
+                          {a.note}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </>
+            )}
+
+            {/* Waiting On section */}
+            {pendingList.length > 0 && (
+              <>
+                <p
+                  className="text-[11px] font-bold uppercase px-6 pt-5 pb-2"
+                  style={{ color: "#a8a29e", letterSpacing: "0.5px" }}
+                >
+                  Waiting On ({pendingCount})
+                </p>
+                {pendingList.map((a) => (
+                  <div
+                    key={a.id}
+                    className="flex items-center gap-2.5 px-6 py-3"
+                    style={{ borderTop: "1px solid #f5f5f4" }}
+                  >
+                    <div
+                      className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                      style={{ background: "#d6d3d1" }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold" style={{ color: "#1c1917" }}>
+                        {a.players.name || a.players.email}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </>
+            )}
+
+            {attendanceList.length === 0 && (
+              <p className="px-6 py-8 text-center text-sm" style={{ color: "#a8a29e" }}>
+                No players yet.
+              </p>
+            )}
           </div>
         </div>
       )}

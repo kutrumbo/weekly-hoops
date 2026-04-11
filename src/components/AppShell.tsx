@@ -25,7 +25,7 @@ export default async function AppShell({
   return (
     <>
       <Nav isAdmin={player?.is_admin ?? false} />
-      <main className="max-w-2xl mx-auto px-4 py-6 w-full">{children}</main>
+      <main className="max-w-[600px] mx-auto px-5 py-6 w-full">{children}</main>
     </>
   );
 }

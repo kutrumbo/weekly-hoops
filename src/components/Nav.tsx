@@ -23,29 +23,38 @@ export default function Nav({ isAdmin }: { isAdmin: boolean }) {
   ];
 
   return (
-    <nav className="bg-white border-b border-gray-200">
-      <div className="max-w-2xl mx-auto px-4">
+    <nav
+      className="sticky top-0 z-50"
+      style={{ background: "white", borderBottom: "1px solid #e7e5e4" }}
+    >
+      <div className="max-w-[600px] mx-auto px-5">
         <div className="flex items-center justify-between h-14">
-          <Link href="/" className="font-bold text-orange-600 text-lg">
-            Weekly Hoops
+          <Link
+            href="/"
+            className="font-extrabold text-lg flex items-center gap-2"
+            style={{ color: "#1c1917" }}
+          >
+            <span>🏀</span> Weekly Hoops
           </Link>
           <div className="flex items-center gap-1">
             {links.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                className="px-3 py-1.5 rounded-lg text-[13px] font-semibold transition-colors"
+                style={
                   pathname === link.href
-                    ? "bg-orange-100 text-orange-700"
-                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-                }`}
+                    ? { background: "#fef3c7", color: "#92400e" }
+                    : { color: "#78716c" }
+                }
               >
                 {link.label}
               </Link>
             ))}
             <button
               onClick={handleSignOut}
-              className="ml-2 px-3 py-1.5 rounded-md text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+              className="ml-1 px-3 py-1.5 rounded-lg text-[13px] transition-colors"
+              style={{ color: "#a8a29e" }}
             >
               Sign Out
             </button>

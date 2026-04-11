@@ -49,8 +49,8 @@ export default function SettingsPage() {
     return (
       <>
         <Nav isAdmin={false} />
-        <main className="max-w-2xl mx-auto px-4 py-6">
-          <p className="text-gray-500">Loading...</p>
+        <main className="max-w-[600px] mx-auto px-5 py-6">
+          <p style={{ color: "#a8a29e" }}>Loading...</p>
         </main>
       </>
     );
@@ -59,46 +59,82 @@ export default function SettingsPage() {
   return (
     <>
       <Nav isAdmin={player.is_admin} />
-      <main className="max-w-2xl mx-auto px-4 py-6 w-full">
-        <h1 className="text-xl font-bold mb-4">Settings</h1>
+      <main className="max-w-[600px] mx-auto px-5 py-6 w-full">
+        <h1 className="text-xl font-extrabold mb-5" style={{ color: "#1c1917" }}>
+          Settings
+        </h1>
 
-        <div className="bg-white rounded-lg shadow p-6 space-y-4">
+        <div
+          className="rounded-[20px] p-6 space-y-5"
+          style={{
+            background: "white",
+            border: "1px solid #e7e5e4",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
+          }}
+        >
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              className="block text-sm font-semibold mb-1.5"
+              style={{ color: "#44403c" }}
+            >
               Display Name
             </label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              className="w-full rounded-xl px-4 py-3 text-base transition-all"
+              style={{
+                border: "2px solid #e7e5e4",
+                background: "#fafaf9",
+                color: "#1c1917",
+                outline: "none",
+              }}
+              onFocus={(e) => {
+                e.target.style.borderColor = "#f97316";
+                e.target.style.background = "white";
+                e.target.style.boxShadow = "0 0 0 3px rgba(249,115,22,0.1)";
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = "#e7e5e4";
+                e.target.style.background = "#fafaf9";
+                e.target.style.boxShadow = "none";
+              }}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              className="block text-sm font-semibold mb-1"
+              style={{ color: "#44403c" }}
+            >
               Email
             </label>
-            <p className="text-gray-500 text-sm">{player.email}</p>
+            <p className="text-sm" style={{ color: "#78716c" }}>
+              {player.email}
+            </p>
           </div>
 
-          <div className="flex items-center justify-between py-2">
+          <div
+            className="flex items-center justify-between py-3 px-4 rounded-xl"
+            style={{ background: "#fafaf9" }}
+          >
             <div>
-              <p className="font-medium text-sm">Auto-In</p>
-              <p className="text-xs text-gray-500">
+              <p className="font-semibold text-sm" style={{ color: "#1c1917" }}>
+                Auto-In
+              </p>
+              <p className="text-xs" style={{ color: "#78716c" }}>
                 Automatically mark yourself as &quot;In&quot; for new games
               </p>
             </div>
             <button
               onClick={() => setAutoIn(!autoIn)}
-              className={`relative w-11 h-6 rounded-full transition-colors ${
-                autoIn ? "bg-orange-600" : "bg-gray-300"
-              }`}
+              className="relative w-11 h-6 rounded-full transition-colors"
+              style={{ background: autoIn ? "#f97316" : "#d6d3d1" }}
             >
               <span
-                className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform ${
-                  autoIn ? "translate-x-5" : ""
-                }`}
+                className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform"
+                style={{ transform: autoIn ? "translateX(20px)" : "translateX(0)" }}
               />
             </button>
           </div>
@@ -106,7 +142,8 @@ export default function SettingsPage() {
           <button
             onClick={handleSave}
             disabled={isPending}
-            className="w-full bg-orange-600 text-white rounded-md py-2 font-medium hover:bg-orange-700 disabled:opacity-50 transition-colors"
+            className="w-full rounded-xl py-3.5 font-bold text-base text-white transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:hover:translate-y-0"
+            style={{ background: "#1c1917" }}
           >
             {isPending ? "Saving..." : saved ? "Saved!" : "Save Changes"}
           </button>

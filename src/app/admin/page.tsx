@@ -11,8 +11,37 @@ import {
   updateAppSetting,
 } from "@/app/actions";
 import Nav from "@/components/Nav";
+import { FormattedDateTime } from "@/components/FormattedDate";
 import type { Player, Game, AppSetting } from "@/lib/types";
 import { useRouter } from "next/navigation";
+
+/* ── Shared style constants ── */
+const card = {
+  background: "white",
+  border: "1px solid #e7e5e4",
+  boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
+  borderRadius: "20px",
+} as const;
+
+const inputStyle = {
+  border: "2px solid #e7e5e4",
+  borderRadius: "12px",
+  padding: "10px 14px",
+  fontSize: "14px",
+  color: "#1c1917",
+  background: "#fafaf9",
+  outline: "none",
+  width: "100%",
+} as const;
+
+const sectionLabel = {
+  fontSize: "13px",
+  fontWeight: 600,
+  color: "#a8a29e",
+  textTransform: "uppercase" as const,
+  letterSpacing: "0.5px",
+  marginBottom: "12px",
+};
 
 export default function AdminPage() {
   const router = useRouter();
@@ -22,13 +51,11 @@ export default function AdminPage() {
   const [settings, setSettings] = useState<AppSetting[]>([]);
   const [isPending, startTransition] = useTransition();
 
-  // New game form
   const [newGameDate, setNewGameDate] = useState("");
-  const [newGameTime, setNewGameTime] = useState("19:00");
+  const [newGameTime, setNewGameTime] = useState("20:00");
 
-  // Settings form
   const [gameDay, setGameDay] = useState("Wednesday");
-  const [gameTime, setGameTime] = useState("19:00");
+  const [gameTime, setGameTime] = useState("20:00");
   const [gameLocation, setGameLocation] = useState("");
   const [settingsSaved, setSettingsSaved] = useState(false);
 
@@ -70,7 +97,6 @@ export default function AdminPage() {
         .select("*");
       setSettings((allSettings as AppSetting[]) ?? []);
 
-      // Populate settings form
       for (const s of (allSettings as AppSetting[]) ?? []) {
         if (s.key === "game_day") setGameDay(s.value);
         if (s.key === "game_time") setGameTime(s.value);
@@ -82,10 +108,12 @@ export default function AdminPage() {
 
   const handleCreateGame = () => {
     if (!newGameDate) return;
-    const datetime = `${newGameDate}T${newGameTime}:00`;
+    // Convert local date/time to a proper UTC ISO string so Supabase
+    // stores it correctly regardless of server timezone
+    const localDate = new Date(`${newGameDate}T${newGameTime}:00`);
+    const datetime = localDate.toISOString();
     startTransition(async () => {
       await createGame(datetime);
-      // Refresh games list
       const supabase = createClient();
       const { data } = await supabase
         .from("games")
@@ -144,84 +172,53 @@ export default function AdminPage() {
     });
   };
 
-  const formatDate = (dateStr: string) => {
-    const d = new Date(dateStr);
-    return d.toLocaleDateString("en-US", {
-      weekday: "short",
-      month: "short",
-      day: "numeric",
-    });
-  };
-
-  const formatTime = (dateStr: string) => {
-    const d = new Date(dateStr);
-    return d.toLocaleTimeString("en-US", {
-      hour: "numeric",
-      minute: "2-digit",
-    });
-  };
-
   if (!player) {
     return (
       <>
         <Nav isAdmin={false} />
-        <main className="max-w-2xl mx-auto px-4 py-6">
-          <p className="text-gray-500">Loading...</p>
+        <main className="max-w-[600px] mx-auto px-5 py-6">
+          <p style={{ color: "#a8a29e" }}>Loading...</p>
         </main>
       </>
     );
   }
 
   const days = [
-    "Sunday",
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
+    "Sunday", "Monday", "Tuesday", "Wednesday",
+    "Thursday", "Friday", "Saturday",
   ];
 
   return (
     <>
       <Nav isAdmin={true} />
-      <main className="max-w-2xl mx-auto px-4 py-6 w-full space-y-6">
-        <h1 className="text-xl font-bold">Admin</h1>
+      <main className="max-w-[600px] mx-auto px-5 py-6 w-full space-y-5">
+        <h1 className="text-xl font-extrabold" style={{ color: "#1c1917" }}>
+          Admin
+        </h1>
 
         {/* ── Game Schedule Settings ── */}
-        <section className="bg-white rounded-lg shadow p-6">
-          <h2 className="font-semibold text-gray-700 mb-4">Game Schedule</h2>
-          <div className="grid grid-cols-2 gap-4 mb-4">
+        <section className="p-6" style={card}>
+          <p style={sectionLabel}>Game Schedule</p>
+          <div className="grid grid-cols-2 gap-3 mb-3">
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">
+              <label className="block text-sm font-semibold mb-1" style={{ color: "#44403c" }}>
                 Day of Week
               </label>
-              <select
-                value={gameDay}
-                onChange={(e) => setGameDay(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500"
-              >
+              <select value={gameDay} onChange={(e) => setGameDay(e.target.value)} style={inputStyle}>
                 {days.map((d) => (
-                  <option key={d} value={d}>
-                    {d}
-                  </option>
+                  <option key={d} value={d}>{d}</option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">
+              <label className="block text-sm font-semibold mb-1" style={{ color: "#44403c" }}>
                 Time
               </label>
-              <input
-                type="time"
-                value={gameTime}
-                onChange={(e) => setGameTime(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500"
-              />
+              <input type="time" value={gameTime} onChange={(e) => setGameTime(e.target.value)} style={inputStyle} />
             </div>
           </div>
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-600 mb-1">
+            <label className="block text-sm font-semibold mb-1" style={{ color: "#44403c" }}>
               Location
             </label>
             <input
@@ -229,177 +226,184 @@ export default function AdminPage() {
               value={gameLocation}
               onChange={(e) => setGameLocation(e.target.value)}
               placeholder="e.g., Downtown YMCA Court 2"
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500"
+              style={inputStyle}
             />
           </div>
           <button
             onClick={handleSaveSettings}
             disabled={isPending}
-            className="bg-orange-600 text-white rounded-md px-4 py-2 text-sm font-medium hover:bg-orange-700 disabled:opacity-50 transition-colors"
+            className="rounded-xl px-5 py-2.5 text-sm font-bold text-white transition-all disabled:opacity-50"
+            style={{ background: "#1c1917" }}
           >
             {isPending ? "Saving..." : settingsSaved ? "Saved!" : "Save Schedule"}
           </button>
         </section>
 
         {/* ── Create Game ── */}
-        <section className="bg-white rounded-lg shadow p-6">
-          <h2 className="font-semibold text-gray-700 mb-4">Create Game</h2>
+        <section className="p-6" style={card}>
+          <p style={sectionLabel}>Create Game</p>
+          <p className="text-sm mb-3" style={{ color: "#78716c" }}>
+            This is only used for manually adding a game, by default a game will be created weekly according to the schedule defined above.
+          </p>
           <div className="flex gap-3 items-end">
             <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-600 mb-1">
+              <label className="block text-sm font-semibold mb-1" style={{ color: "#44403c" }}>
                 Date
               </label>
-              <input
-                type="date"
-                value={newGameDate}
-                onChange={(e) => setNewGameDate(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500"
-              />
+              <input type="date" value={newGameDate} onChange={(e) => setNewGameDate(e.target.value)} style={inputStyle} />
             </div>
             <div className="w-32">
-              <label className="block text-sm font-medium text-gray-600 mb-1">
+              <label className="block text-sm font-semibold mb-1" style={{ color: "#44403c" }}>
                 Time
               </label>
-              <input
-                type="time"
-                value={newGameTime}
-                onChange={(e) => setNewGameTime(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500"
-              />
+              <input type="time" value={newGameTime} onChange={(e) => setNewGameTime(e.target.value)} style={inputStyle} />
             </div>
             <button
               onClick={handleCreateGame}
               disabled={isPending || !newGameDate}
-              className="bg-green-600 text-white rounded-md px-4 py-2 text-sm font-medium hover:bg-green-700 disabled:opacity-50 transition-colors"
+              className="rounded-xl px-5 py-2.5 text-sm font-bold text-white transition-all disabled:opacity-50"
+              style={{ background: "#16a34a" }}
             >
               Create
             </button>
           </div>
         </section>
 
-        {/* ── Manage Games ── */}
-        <section className="bg-white rounded-lg shadow">
-          <h2 className="px-6 pt-6 pb-2 font-semibold text-gray-700">
-            Recent Games
-          </h2>
-          <div className="divide-y divide-gray-100">
-            {games.map((game) => (
-              <div
-                key={game.id}
-                className="px-6 py-3 flex items-center justify-between"
-              >
-                <div>
-                  <p className="text-sm font-medium">
-                    {formatDate(game.game_date)} · {formatTime(game.game_date)}
-                  </p>
-                  <span
-                    className={`text-xs font-medium ${
-                      game.status === "open"
-                        ? "text-green-600"
-                        : game.status === "locked"
-                        ? "text-amber-600"
-                        : "text-red-600"
-                    }`}
-                  >
-                    {game.status}
-                  </span>
-                </div>
-                <div className="flex gap-1">
-                  {game.status === "open" && (
-                    <button
-                      onClick={() => handleStatusChange(game.id, "locked")}
-                      className="px-2 py-1 text-xs bg-amber-100 text-amber-700 rounded hover:bg-amber-200 transition-colors"
-                    >
-                      Lock
-                    </button>
-                  )}
-                  {game.status === "locked" && (
-                    <button
-                      onClick={() => handleStatusChange(game.id, "open")}
-                      className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors"
-                    >
-                      Reopen
-                    </button>
-                  )}
-                  {game.status !== "cancelled" && (
-                    <button
-                      onClick={() => handleStatusChange(game.id, "cancelled")}
-                      className="px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors"
-                    >
-                      Cancel
-                    </button>
-                  )}
-                  {game.status === "cancelled" && (
-                    <button
-                      onClick={() => handleStatusChange(game.id, "open")}
-                      className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors"
-                    >
-                      Reopen
-                    </button>
-                  )}
-                  <button
-                    onClick={() => handleDeleteGame(game.id)}
-                    className="px-2 py-1 text-xs bg-gray-100 text-gray-500 rounded hover:bg-gray-200 transition-colors"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            ))}
-            {games.length === 0 && (
-              <p className="px-6 py-4 text-sm text-gray-400">No games yet.</p>
-            )}
+        {/* ── Recent Games ── */}
+        <section style={card} className="overflow-hidden">
+          <div className="px-6 pt-6 pb-2">
+            <p style={sectionLabel}>Recent Games</p>
           </div>
+          {games.map((game) => (
+            <div
+              key={game.id}
+              className="px-6 py-3.5 flex items-center justify-between"
+              style={{ borderTop: "1px solid #f5f5f4" }}
+            >
+              <div>
+                <p className="text-sm font-semibold" style={{ color: "#1c1917" }}>
+                  <FormattedDateTime date={game.game_date} />
+                </p>
+                <span
+                  className="text-xs font-bold"
+                  style={{
+                    color: game.status === "open" ? "#16a34a"
+                      : game.status === "locked" ? "#d97706"
+                      : "#ef4444",
+                  }}
+                >
+                  {game.status}
+                </span>
+              </div>
+              <div className="flex gap-1.5">
+                {game.status === "open" && (
+                  <button
+                    onClick={() => handleStatusChange(game.id, "locked")}
+                    className="px-2.5 py-1 text-xs font-semibold rounded-lg transition-colors"
+                    style={{ background: "#fef3c7", color: "#92400e" }}
+                  >
+                    Lock
+                  </button>
+                )}
+                {game.status === "locked" && (
+                  <button
+                    onClick={() => handleStatusChange(game.id, "open")}
+                    className="px-2.5 py-1 text-xs font-semibold rounded-lg transition-colors"
+                    style={{ background: "#dcfce7", color: "#166534" }}
+                  >
+                    Reopen
+                  </button>
+                )}
+                {game.status !== "cancelled" && (
+                  <button
+                    onClick={() => handleStatusChange(game.id, "cancelled")}
+                    className="px-2.5 py-1 text-xs font-semibold rounded-lg transition-colors"
+                    style={{ background: "#fee2e2", color: "#991b1b" }}
+                  >
+                    Cancel
+                  </button>
+                )}
+                {game.status === "cancelled" && (
+                  <button
+                    onClick={() => handleStatusChange(game.id, "open")}
+                    className="px-2.5 py-1 text-xs font-semibold rounded-lg transition-colors"
+                    style={{ background: "#dcfce7", color: "#166534" }}
+                  >
+                    Reopen
+                  </button>
+                )}
+                <button
+                  onClick={() => handleDeleteGame(game.id)}
+                  className="px-2.5 py-1 text-xs font-semibold rounded-lg transition-colors"
+                  style={{ background: "#f5f5f4", color: "#78716c" }}
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          ))}
+          {games.length === 0 && (
+            <p className="px-6 py-5 text-sm" style={{ color: "#a8a29e" }}>
+              No games yet.
+            </p>
+          )}
         </section>
 
-        {/* ── Manage Players ── */}
-        <section className="bg-white rounded-lg shadow">
-          <h2 className="px-6 pt-6 pb-2 font-semibold text-gray-700">
-            Players ({players.length})
-          </h2>
-          <div className="divide-y divide-gray-100">
-            {players.map((p) => (
-              <div
-                key={p.id}
-                className="px-6 py-3 flex items-center justify-between"
-              >
-                <div>
-                  <p className="text-sm font-medium">
-                    {p.name || p.email}
-                    {p.is_admin && (
-                      <span className="ml-2 text-xs bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded">
-                        Admin
-                      </span>
-                    )}
-                    {p.auto_in && (
-                      <span className="ml-1 text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">
-                        Auto-in
-                      </span>
-                    )}
-                  </p>
-                  <p className="text-xs text-gray-500">{p.email}</p>
-                </div>
-                <div className="flex gap-1">
-                  <button
-                    onClick={() => handleToggleAdmin(p.id, p.is_admin)}
-                    className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded hover:bg-gray-200 transition-colors"
-                  >
-                    {p.is_admin ? "Remove Admin" : "Make Admin"}
-                  </button>
-                  {p.id !== player.id && (
-                    <button
-                      onClick={() =>
-                        handleRemovePlayer(p.id, p.name || p.email)
-                      }
-                      className="px-2 py-1 text-xs bg-red-100 text-red-600 rounded hover:bg-red-200 transition-colors"
-                    >
-                      Remove
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))}
+        {/* ── Players ── */}
+        <section style={card} className="overflow-hidden">
+          <div className="px-6 pt-6 pb-2">
+            <p style={sectionLabel}>Players ({players.length})</p>
           </div>
+          {players.map((p) => (
+            <div
+              key={p.id}
+              className="px-6 py-3.5 flex items-center justify-between"
+              style={{ borderTop: "1px solid #f5f5f4" }}
+            >
+              <div>
+                <p className="text-sm font-semibold" style={{ color: "#1c1917" }}>
+                  {p.name || p.email}
+                  {p.is_admin && (
+                    <span
+                      className="ml-2 text-[11px] font-bold px-2 py-0.5 rounded-md"
+                      style={{ background: "#fef3c7", color: "#92400e" }}
+                    >
+                      Admin
+                    </span>
+                  )}
+                  {p.auto_in && (
+                    <span
+                      className="ml-1 text-[11px] font-bold px-2 py-0.5 rounded-md"
+                      style={{ background: "#dbeafe", color: "#1e40af" }}
+                    >
+                      Auto-in
+                    </span>
+                  )}
+                </p>
+                <p className="text-xs" style={{ color: "#a8a29e" }}>
+                  {p.email}
+                </p>
+              </div>
+              <div className="flex gap-1.5">
+                <button
+                  onClick={() => handleToggleAdmin(p.id, p.is_admin)}
+                  className="px-2.5 py-1 text-xs font-semibold rounded-lg transition-colors"
+                  style={{ background: "#f5f5f4", color: "#44403c" }}
+                >
+                  {p.is_admin ? "Remove Admin" : "Make Admin"}
+                </button>
+                {p.id !== player.id && (
+                  <button
+                    onClick={() => handleRemovePlayer(p.id, p.name || p.email)}
+                    className="px-2.5 py-1 text-xs font-semibold rounded-lg transition-colors"
+                    style={{ background: "#fee2e2", color: "#991b1b" }}
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
         </section>
       </main>
     </>

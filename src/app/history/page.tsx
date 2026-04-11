@@ -1,4 +1,5 @@
 import AppShell from "@/components/AppShell";
+import { FormattedDateTime } from "@/components/FormattedDate";
 import { createClient } from "@/lib/supabase/server";
 import type { Game, AttendanceWithPlayer } from "@/lib/types";
 
@@ -13,7 +14,6 @@ export default async function HistoryPage() {
 
   const allGames = (games as Game[]) ?? [];
 
-  // Get attendance for all games
   const gameIds = allGames.map((g) => g.id);
   const { data: allAttendance } = await supabase
     .from("attendance")
@@ -27,29 +27,17 @@ export default async function HistoryPage() {
     attendanceByGame.set(a.game_id, list);
   }
 
-  const formatDate = (dateStr: string) => {
-    const d = new Date(dateStr);
-    return d.toLocaleDateString("en-US", {
-      weekday: "short",
-      month: "short",
-      day: "numeric",
-    });
-  };
-
-  const formatTime = (dateStr: string) => {
-    const d = new Date(dateStr);
-    return d.toLocaleTimeString("en-US", {
-      hour: "numeric",
-      minute: "2-digit",
-    });
-  };
-
   return (
     <AppShell>
-      <h1 className="text-xl font-bold mb-4">Game History</h1>
+      <h1 className="text-xl font-extrabold mb-5" style={{ color: "#1c1917" }}>
+        Game History
+      </h1>
 
       {allGames.length === 0 ? (
-        <p className="text-gray-500 text-center py-8">No games yet.</p>
+        <div className="text-center py-16" style={{ color: "#a8a29e" }}>
+          <div className="text-4xl mb-3">📋</div>
+          <p className="font-semibold" style={{ color: "#78716c" }}>No games yet</p>
+        </div>
       ) : (
         <div className="space-y-3">
           {allGames.map((game) => {
@@ -57,40 +45,58 @@ export default async function HistoryPage() {
             const inCount = attendance.filter((a) => a.status === "in").length;
             const outCount = attendance.filter((a) => a.status === "out").length;
 
+            const statusBadge = () => {
+              if (game.status === "open") return { bg: "#dcfce7", color: "#166534" };
+              if (game.status === "locked") return { bg: "#fef3c7", color: "#92400e" };
+              return { bg: "#fee2e2", color: "#991b1b" };
+            };
+
             return (
-              <div key={game.id} className="bg-white rounded-lg shadow p-4">
+              <div
+                key={game.id}
+                className="rounded-[20px] p-5"
+                style={{
+                  background: "white",
+                  border: "1px solid #e7e5e4",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
+                }}
+              >
                 <div className="flex items-center justify-between mb-2">
-                  <div>
-                    <p className="font-semibold">
-                      {formatDate(game.game_date)} · {formatTime(game.game_date)}
-                    </p>
-                  </div>
+                  <p className="font-bold text-sm" style={{ color: "#1c1917" }}>
+                    <FormattedDateTime date={game.game_date} />
+                  </p>
                   <span
-                    className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                      game.status === "open"
-                        ? "bg-green-100 text-green-700"
-                        : game.status === "locked"
-                        ? "bg-amber-100 text-amber-700"
-                        : "bg-red-100 text-red-700"
-                    }`}
+                    className="text-[11px] font-bold uppercase px-2.5 py-0.5 rounded-full"
+                    style={{
+                      background: statusBadge().bg,
+                      color: statusBadge().color,
+                      letterSpacing: "0.5px",
+                    }}
                   >
                     {game.status}
                   </span>
                 </div>
-                <div className="flex gap-4 text-sm text-gray-600">
-                  <span className="text-green-600">{inCount} in</span>
-                  <span className="text-red-600">{outCount} out</span>
+                <div className="flex gap-4 text-sm mb-2">
+                  <span className="font-semibold" style={{ color: "#16a34a" }}>
+                    {inCount} in
+                  </span>
+                  <span className="font-semibold" style={{ color: "#ef4444" }}>
+                    {outCount} out
+                  </span>
                 </div>
-                {attendance
-                  .filter((a) => a.status === "in")
-                  .map((a) => (
-                    <span
-                      key={a.id}
-                      className="inline-block mr-1.5 mt-2 text-xs bg-gray-100 px-2 py-0.5 rounded"
-                    >
-                      {a.players.name || a.players.email}
-                    </span>
-                  ))}
+                <div className="flex flex-wrap gap-1.5">
+                  {attendance
+                    .filter((a) => a.status === "in")
+                    .map((a) => (
+                      <span
+                        key={a.id}
+                        className="text-xs font-medium px-2.5 py-1 rounded-lg"
+                        style={{ background: "#f5f5f4", color: "#44403c" }}
+                      >
+                        {a.players.name || a.players.email}
+                      </span>
+                    ))}
+                </div>
               </div>
             );
           })}
