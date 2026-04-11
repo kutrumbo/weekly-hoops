@@ -245,28 +245,28 @@ export default function AdminPage() {
           <p className="text-sm mb-3" style={{ color: "#78716c" }}>
             This is only used for manually adding a game, by default a game will be created weekly according to the schedule defined above.
           </p>
-          <div className="flex gap-3 items-end">
-            <div className="flex-1">
+          <div className="grid grid-cols-2 gap-3 mb-3">
+            <div>
               <label className="block text-sm font-semibold mb-1" style={{ color: "#44403c" }}>
                 Date
               </label>
               <input type="date" value={newGameDate} onChange={(e) => setNewGameDate(e.target.value)} style={inputStyle} />
             </div>
-            <div className="w-32">
+            <div>
               <label className="block text-sm font-semibold mb-1" style={{ color: "#44403c" }}>
                 Time
               </label>
               <input type="time" value={newGameTime} onChange={(e) => setNewGameTime(e.target.value)} style={inputStyle} />
             </div>
-            <button
-              onClick={handleCreateGame}
-              disabled={isPending || !newGameDate}
-              className="rounded-xl px-5 py-2.5 text-sm font-bold text-white transition-all disabled:opacity-50"
-              style={{ background: "#16a34a" }}
-            >
-              Create
-            </button>
           </div>
+          <button
+            onClick={handleCreateGame}
+            disabled={isPending || !newGameDate}
+            className="w-full rounded-xl px-5 py-2.5 text-sm font-bold text-white transition-all disabled:opacity-50"
+            style={{ background: "#16a34a" }}
+          >
+            Create Game
+          </button>
         </section>
 
         {/* ── Recent Games ── */}
@@ -277,25 +277,27 @@ export default function AdminPage() {
           {games.map((game) => (
             <div
               key={game.id}
-              className="px-6 py-3.5 flex items-center justify-between"
+              className="px-5 sm:px-6 py-3.5"
               style={{ borderTop: "1px solid #f5f5f4" }}
             >
-              <div>
-                <p className="text-sm font-semibold" style={{ color: "#1c1917" }}>
-                  <FormattedDateTime date={game.game_date} />
-                </p>
-                <span
-                  className="text-xs font-bold"
-                  style={{
-                    color: game.status === "open" ? "#16a34a"
-                      : game.status === "locked" ? "#d97706"
-                      : "#ef4444",
-                  }}
-                >
-                  {game.status}
-                </span>
+              <div className="flex items-center justify-between mb-2">
+                <div>
+                  <p className="text-sm font-semibold" style={{ color: "#1c1917" }}>
+                    <FormattedDateTime date={game.game_date} />
+                  </p>
+                  <span
+                    className="text-xs font-bold"
+                    style={{
+                      color: game.status === "open" ? "#16a34a"
+                        : game.status === "locked" ? "#d97706"
+                        : "#ef4444",
+                    }}
+                  >
+                    {game.status}
+                  </span>
+                </div>
               </div>
-              <div className="flex gap-1.5">
+              <div className="flex flex-wrap gap-1.5">
                 {game.status === "open" && (
                   <button
                     onClick={() => handleStatusChange(game.id, "locked")}
@@ -357,34 +359,36 @@ export default function AdminPage() {
           {players.map((p) => (
             <div
               key={p.id}
-              className="px-6 py-3.5 flex items-center justify-between"
+              className="px-5 sm:px-6 py-3.5"
               style={{ borderTop: "1px solid #f5f5f4" }}
             >
-              <div>
-                <p className="text-sm font-semibold" style={{ color: "#1c1917" }}>
-                  {p.name || p.email}
-                  {p.is_admin && (
-                    <span
-                      className="ml-2 text-[11px] font-bold px-2 py-0.5 rounded-md"
-                      style={{ background: "#fef3c7", color: "#92400e" }}
-                    >
-                      Admin
-                    </span>
-                  )}
-                  {p.auto_in && (
-                    <span
-                      className="ml-1 text-[11px] font-bold px-2 py-0.5 rounded-md"
-                      style={{ background: "#dbeafe", color: "#1e40af" }}
-                    >
-                      Auto-in
-                    </span>
-                  )}
-                </p>
-                <p className="text-xs" style={{ color: "#a8a29e" }}>
-                  {p.email}
-                </p>
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold" style={{ color: "#1c1917" }}>
+                    <span className="truncate">{p.name || p.email}</span>
+                    {p.is_admin && (
+                      <span
+                        className="ml-2 text-[11px] font-bold px-2 py-0.5 rounded-md whitespace-nowrap"
+                        style={{ background: "#fef3c7", color: "#92400e" }}
+                      >
+                        Admin
+                      </span>
+                    )}
+                    {p.auto_in && (
+                      <span
+                        className="ml-1 text-[11px] font-bold px-2 py-0.5 rounded-md whitespace-nowrap"
+                        style={{ background: "#dbeafe", color: "#1e40af" }}
+                      >
+                        Auto-in
+                      </span>
+                    )}
+                  </p>
+                  <p className="text-xs truncate" style={{ color: "#a8a29e" }}>
+                    {p.email}
+                  </p>
+                </div>
               </div>
-              <div className="flex gap-1.5">
+              <div className="flex flex-wrap gap-1.5 mt-2">
                 <button
                   onClick={() => handleToggleAdmin(p.id, p.is_admin)}
                   className="px-2.5 py-1 text-xs font-semibold rounded-lg transition-colors"
