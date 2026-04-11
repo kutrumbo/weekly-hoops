@@ -64,6 +64,18 @@ export default function AttendanceToggle({
               ? { border: "2px solid #22c55e", background: "#f0fdf4", color: "#166534" }
               : { border: "2px solid #e7e5e4", background: "white", color: "#78716c" }
           }
+          onMouseOver={(e) => {
+            if (!gameLocked && currentStatus !== "in") {
+              e.currentTarget.style.borderColor = "#86efac";
+              e.currentTarget.style.background = "#f0fdf4";
+            }
+          }}
+          onMouseOut={(e) => {
+            if (currentStatus !== "in") {
+              e.currentTarget.style.borderColor = "#e7e5e4";
+              e.currentTarget.style.background = "white";
+            }
+          }}
         >
           ✋ I&apos;m In
         </button>
@@ -76,6 +88,18 @@ export default function AttendanceToggle({
               ? { border: "2px solid #ef4444", background: "#fef2f2", color: "#991b1b" }
               : { border: "2px solid #e7e5e4", background: "white", color: "#78716c" }
           }
+          onMouseOver={(e) => {
+            if (!gameLocked && currentStatus !== "out") {
+              e.currentTarget.style.borderColor = "#fca5a5";
+              e.currentTarget.style.background = "#fef2f2";
+            }
+          }}
+          onMouseOut={(e) => {
+            if (currentStatus !== "out") {
+              e.currentTarget.style.borderColor = "#e7e5e4";
+              e.currentTarget.style.background = "white";
+            }
+          }}
         >
           👋 I&apos;m Out
         </button>
@@ -90,8 +114,10 @@ export default function AttendanceToggle({
       {!showNote && !gameLocked && (
         <button
           onClick={() => setShowNote(true)}
-          className="text-sm mt-3 font-medium"
+          className="text-sm mt-3 font-medium transition-colors"
           style={{ color: "#78716c" }}
+          onMouseOver={(e) => { e.currentTarget.style.color = "#44403c"; }}
+          onMouseOut={(e) => { e.currentTarget.style.color = "#78716c"; }}
         >
           + Add a note
         </button>
@@ -126,6 +152,8 @@ export default function AttendanceToggle({
             disabled={gameLocked || isPending}
             className="px-4 py-2.5 rounded-xl text-[13px] font-semibold text-white transition-all disabled:opacity-50"
             style={{ background: "#1c1917" }}
+            onMouseOver={(e) => { e.currentTarget.style.background = "#292524"; }}
+            onMouseOut={(e) => { e.currentTarget.style.background = "#1c1917"; }}
           >
             Save
           </button>
@@ -135,6 +163,8 @@ export default function AttendanceToggle({
               disabled={isPending}
               className="px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-all disabled:opacity-50"
               style={{ color: "#a8a29e" }}
+              onMouseOver={(e) => { e.currentTarget.style.color = "#78716c"; }}
+              onMouseOut={(e) => { e.currentTarget.style.color = "#a8a29e"; }}
             >
               ✕
             </button>

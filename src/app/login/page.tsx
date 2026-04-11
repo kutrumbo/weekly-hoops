@@ -8,14 +8,33 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
+  const [isNotInvited, setIsNotInvited] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setMessage("");
     setIsSuccess(false);
+    setIsNotInvited(false);
 
     const supabase = createClient();
+
+    // Check if this email has been invited
+    const { data: invite } = await supabase
+      .from("invited_emails")
+      .select("email")
+      .eq("email", email.toLowerCase().trim())
+      .single();
+
+    if (!invite) {
+      setIsNotInvited(true);
+      setMessage(
+        "You must be invited before signing in."
+      );
+      setLoading(false);
+      return;
+    }
+
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
@@ -107,22 +126,32 @@ export default function LoginPage() {
               border: 'none',
             }}
             onMouseOver={(e) => {
-              if (!loading) (e.target as HTMLElement).style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+              if (!loading) {
+                (e.target as HTMLElement).style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+                (e.target as HTMLElement).style.background = '#292524';
+              }
             }}
             onMouseOut={(e) => {
               (e.target as HTMLElement).style.boxShadow = 'none';
+              (e.target as HTMLElement).style.background = '#1c1917';
             }}
           >
             {loading ? "Sending..." : "Continue with Email →"}
           </button>
 
           {message && (
-            <p
-              className="mt-4 text-center text-sm font-medium"
-              style={{ color: isSuccess ? '#16a34a' : '#dc2626' }}
+            <div
+              className="mt-4 rounded-xl px-4 py-3 text-sm font-medium"
+              style={
+                isNotInvited
+                  ? { background: "#fef3c7", color: "#92400e" }
+                  : isSuccess
+                  ? { background: "#f0fdf4", color: "#166534" }
+                  : { background: "#fef2f2", color: "#991b1b" }
+              }
             >
               {message}
-            </p>
+            </div>
           )}
         </form>
 

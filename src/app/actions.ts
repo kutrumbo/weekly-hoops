@@ -105,21 +105,38 @@ export async function deleteGame(gameId: string) {
 export async function invitePlayer(email: string, name: string) {
   const supabase = await createClient();
 
-  // Use Supabase admin invite (requires service role in a real setup)
-  // For now, we'll just add to players if they already have an auth account
-  // The proper flow: admin adds email, player signs in with magic link
-  const { error } = await supabase.from("players").insert({
-    id: crypto.randomUUID(), // placeholder - will be replaced when user signs up
-    email,
+  const { error } = await supabase.from("invited_emails").insert({
+    email: email.toLowerCase().trim(),
     name,
   });
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    if (error.code === "23505") throw new Error("This email has already been invited");
+    throw new Error(error.message);
+  }
+  revalidatePath("/admin");
+}
+
+export async function removeInvite(email: string) {
+  const supabase = await createClient();
+  await supabase.from("invited_emails").delete().eq("email", email);
   revalidatePath("/admin");
 }
 
 export async function removePlayer(playerId: string) {
   const supabase = await createClient();
+
+  // Also remove from invited_emails so they can't sign back in
+  const { data: player } = await supabase
+    .from("players")
+    .select("email")
+    .eq("id", playerId)
+    .single();
+
+  if (player?.email) {
+    await supabase.from("invited_emails").delete().eq("email", player.email);
+  }
+
   await supabase.from("players").delete().eq("id", playerId);
   revalidatePath("/admin");
 }

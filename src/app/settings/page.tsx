@@ -131,6 +131,8 @@ export default function SettingsPage() {
               onClick={() => setAutoIn(!autoIn)}
               className="relative w-11 h-6 rounded-full transition-colors"
               style={{ background: autoIn ? "#f97316" : "#d6d3d1" }}
+              onMouseOver={(e) => { e.currentTarget.style.background = autoIn ? "#ea580c" : "#a8a29e"; }}
+              onMouseOut={(e) => { e.currentTarget.style.background = autoIn ? "#f97316" : "#d6d3d1"; }}
             >
               <span
                 className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform"
@@ -144,6 +146,8 @@ export default function SettingsPage() {
             disabled={isPending}
             className="w-full rounded-xl py-3.5 font-bold text-base text-white transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:hover:translate-y-0"
             style={{ background: "#1c1917" }}
+            onMouseOver={(e) => { e.currentTarget.style.background = "#292524"; }}
+            onMouseOut={(e) => { e.currentTarget.style.background = "#1c1917"; }}
           >
             {isPending ? "Saving..." : saved ? "Saved!" : "Save Changes"}
           </button>

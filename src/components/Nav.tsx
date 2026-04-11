@@ -41,24 +41,41 @@ export default function Nav({ isAdmin }: { isAdmin: boolean }) {
 
           {/* Desktop nav links */}
           <div className="hidden sm:flex items-center gap-1">
-            {links.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="px-3 py-1.5 rounded-lg text-[13px] font-semibold transition-colors"
-                style={
-                  pathname === link.href
-                    ? { background: "#fef3c7", color: "#92400e" }
-                    : { color: "#78716c" }
-                }
-              >
-                {link.label}
-              </Link>
-            ))}
+            {links.map((link) => {
+              const isActive = pathname === link.href;
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="px-3 py-1.5 rounded-lg text-[13px] font-semibold transition-colors"
+                  style={
+                    isActive
+                      ? { background: "#fef3c7", color: "#92400e" }
+                      : { color: "#78716c" }
+                  }
+                  onMouseOver={(e) => {
+                    if (!isActive) {
+                      e.currentTarget.style.background = "#f5f5f4";
+                      e.currentTarget.style.color = "#44403c";
+                    }
+                  }}
+                  onMouseOut={(e) => {
+                    if (!isActive) {
+                      e.currentTarget.style.background = "transparent";
+                      e.currentTarget.style.color = "#78716c";
+                    }
+                  }}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
             <button
               onClick={handleSignOut}
               className="ml-1 px-3 py-1.5 rounded-lg text-[13px] transition-colors"
               style={{ color: "#a8a29e" }}
+              onMouseOver={(e) => { e.currentTarget.style.color = "#78716c"; e.currentTarget.style.background = "#f5f5f4"; }}
+              onMouseOut={(e) => { e.currentTarget.style.color = "#a8a29e"; e.currentTarget.style.background = "transparent"; }}
             >
               Sign Out
             </button>
@@ -102,21 +119,36 @@ export default function Nav({ isAdmin }: { isAdmin: boolean }) {
           style={{ borderTop: "1px solid #f5f5f4" }}
         >
           <div className="flex flex-col gap-1 pt-2">
-            {links.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => setMenuOpen(false)}
-                className="px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors"
-                style={
-                  pathname === link.href
-                    ? { background: "#fef3c7", color: "#92400e" }
-                    : { color: "#44403c" }
-                }
-              >
-                {link.label}
-              </Link>
-            ))}
+            {links.map((link) => {
+              const isActive = pathname === link.href;
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setMenuOpen(false)}
+                  className="px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors"
+                  style={
+                    isActive
+                      ? { background: "#fef3c7", color: "#92400e" }
+                      : { color: "#44403c" }
+                  }
+                  onMouseOver={(e) => {
+                    if (!isActive) {
+                      e.currentTarget.style.background = "#f5f5f4";
+                      e.currentTarget.style.color = "#1c1917";
+                    }
+                  }}
+                  onMouseOut={(e) => {
+                    if (!isActive) {
+                      e.currentTarget.style.background = "transparent";
+                      e.currentTarget.style.color = "#44403c";
+                    }
+                  }}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
             <button
               onClick={() => {
                 setMenuOpen(false);
@@ -124,6 +156,8 @@ export default function Nav({ isAdmin }: { isAdmin: boolean }) {
               }}
               className="px-3 py-2.5 rounded-xl text-sm font-semibold text-left transition-colors"
               style={{ color: "#a8a29e" }}
+              onMouseOver={(e) => { e.currentTarget.style.color = "#78716c"; e.currentTarget.style.background = "#f5f5f4"; }}
+              onMouseOut={(e) => { e.currentTarget.style.color = "#a8a29e"; e.currentTarget.style.background = "transparent"; }}
             >
               Sign Out
             </button>

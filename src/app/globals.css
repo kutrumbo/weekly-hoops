@@ -17,6 +17,13 @@ body {
   font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
 }
 
+/* All buttons and clickable links get pointer cursor */
+button:not(:disabled),
+a[href],
+select {
+  cursor: pointer;
+}
+
 /* Court line decorations for login */
 .court-lines {
   position: fixed;
