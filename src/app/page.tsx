@@ -44,11 +44,11 @@ export default async function HomePage() {
     .eq("key", "game_location")
     .single();
 
-  // Count substitutes brought by "in" players toward the in total
+  // Count all substitutes toward the in total (a player can be "out" but still bring subs)
   const totalSubstitutes = attendanceList
-    .filter((a) => a.status === "in")
     .reduce((sum, a) => sum + (Array.isArray(a.substitutes) ? a.substitutes.length : 0), 0);
-  const inCount = attendanceList.filter((a) => a.status === "in").length + totalSubstitutes;
+  const inPlayerCount = attendanceList.filter((a) => a.status === "in").length;
+  const inCount = inPlayerCount + totalSubstitutes;
   const outCount = attendanceList.filter((a) => a.status === "out").length;
   const pendingCount = attendanceList.filter((a) => a.status === "pending").length;
 
@@ -118,13 +118,18 @@ export default async function HomePage() {
               >
                 <div className="text-center">
                   <p className="text-[28px] font-black" style={{ color: "#4ade80" }}>
-                    {inCount}
+                    {inPlayerCount}
+                    {totalSubstitutes > 0 && (
+                      <span className="text-[18px] font-bold" style={{ color: "#86efac" }}>
+                        {" "}+{totalSubstitutes}
+                      </span>
+                    )}
                   </p>
                   <p
                     className="text-[11px] font-semibold uppercase"
                     style={{ color: "#78716c", letterSpacing: "0.5px" }}
                   >
-                    In
+                    In{totalSubstitutes > 0 ? " (+ subs)" : ""}
                   </p>
                 </div>
                 <div className="text-center">
@@ -180,7 +185,7 @@ export default async function HomePage() {
                   className="text-[11px] font-bold uppercase px-6 pt-5 pb-2"
                   style={{ color: "#a8a29e", letterSpacing: "0.5px" }}
                 >
-                  Playing ({inCount})
+                  Playing ({inPlayerCount}{totalSubstitutes > 0 ? ` + ${totalSubstitutes} sub${totalSubstitutes > 1 ? "s" : ""}` : ""})
                 </p>
                 {inList.map((a) => {
                   const subs = Array.isArray(a.substitutes) ? a.substitutes : [];
@@ -238,28 +243,50 @@ export default async function HomePage() {
                 >
                   Not Playing ({outCount})
                 </p>
-                {outList.map((a) => (
-                  <div
-                    key={a.id}
-                    className="flex items-center gap-2.5 px-6 py-3"
-                    style={{ borderTop: "1px solid #f5f5f4" }}
-                  >
-                    <div
-                      className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                      style={{ background: "#ef4444" }}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold" style={{ color: "#1c1917" }}>
-                        {a.players.name || a.players.email}
-                      </p>
-                      {a.note && (
-                        <p className="text-xs" style={{ color: "#a8a29e" }}>
-                          {a.note}
-                        </p>
-                      )}
+                {outList.map((a) => {
+                  const subs = Array.isArray(a.substitutes) ? a.substitutes : [];
+                  return (
+                    <div key={a.id}>
+                      <div
+                        className="flex items-center gap-2.5 px-6 py-3"
+                        style={{ borderTop: "1px solid #f5f5f4" }}
+                      >
+                        <div
+                          className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                          style={{ background: "#ef4444" }}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold" style={{ color: "#1c1917" }}>
+                            {a.players.name || a.players.email}
+                          </p>
+                          {a.note && (
+                            <p className="text-xs" style={{ color: "#a8a29e" }}>
+                              {a.note}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      {subs.map((sub, i) => (
+                        <div
+                          key={`${a.id}-sub-${i}`}
+                          className="flex items-center gap-2.5 px-6 py-2.5 pl-11"
+                          style={{ borderTop: "1px solid #f5f5f4" }}
+                        >
+                          <div
+                            className="w-2 h-2 rounded-full flex-shrink-0"
+                            style={{ background: "#86efac" }}
+                          />
+                          <p className="text-sm" style={{ color: "#44403c" }}>
+                            {sub.name}
+                            <span className="ml-1.5 text-[11px] font-bold px-1.5 py-0.5 rounded-md" style={{ background: "#f0fdf4", color: "#16a34a" }}>
+                              Sub
+                            </span>
+                          </p>
+                        </div>
+                      ))}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </>
             )}
 
@@ -272,23 +299,45 @@ export default async function HomePage() {
                 >
                   Waiting On ({pendingCount})
                 </p>
-                {pendingList.map((a) => (
-                  <div
-                    key={a.id}
-                    className="flex items-center gap-2.5 px-6 py-3"
-                    style={{ borderTop: "1px solid #f5f5f4" }}
-                  >
-                    <div
-                      className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                      style={{ background: "#d6d3d1" }}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold" style={{ color: "#1c1917" }}>
-                        {a.players.name || a.players.email}
-                      </p>
+                {pendingList.map((a) => {
+                  const subs = Array.isArray(a.substitutes) ? a.substitutes : [];
+                  return (
+                    <div key={a.id}>
+                      <div
+                        className="flex items-center gap-2.5 px-6 py-3"
+                        style={{ borderTop: "1px solid #f5f5f4" }}
+                      >
+                        <div
+                          className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                          style={{ background: "#d6d3d1" }}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold" style={{ color: "#1c1917" }}>
+                            {a.players.name || a.players.email}
+                          </p>
+                        </div>
+                      </div>
+                      {subs.map((sub, i) => (
+                        <div
+                          key={`${a.id}-sub-${i}`}
+                          className="flex items-center gap-2.5 px-6 py-2.5 pl-11"
+                          style={{ borderTop: "1px solid #f5f5f4" }}
+                        >
+                          <div
+                            className="w-2 h-2 rounded-full flex-shrink-0"
+                            style={{ background: "#86efac" }}
+                          />
+                          <p className="text-sm" style={{ color: "#44403c" }}>
+                            {sub.name}
+                            <span className="ml-1.5 text-[11px] font-bold px-1.5 py-0.5 rounded-md" style={{ background: "#f0fdf4", color: "#16a34a" }}>
+                              Sub
+                            </span>
+                          </p>
+                        </div>
+                      ))}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </>
             )}
 
