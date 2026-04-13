@@ -14,12 +14,17 @@ export interface Game {
   created_at: string;
 }
 
+export interface Substitute {
+  name: string;
+}
+
 export interface Attendance {
   id: string;
   player_id: string;
   game_id: string;
   status: "in" | "out" | "pending";
   note: string;
+  substitutes: Substitute[];
   updated_at: string;
 }
 

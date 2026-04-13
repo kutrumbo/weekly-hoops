@@ -55,6 +55,62 @@ export async function updateNote(gameId: string, note: string) {
   revalidatePath("/");
 }
 
+// ── Substitute actions ──
+
+export async function addSubstitute(gameId: string, name: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+
+  const { data: attendance } = await supabase
+    .from("attendance")
+    .select("id, substitutes")
+    .eq("player_id", user.id)
+    .eq("game_id", gameId)
+    .single();
+
+  if (!attendance) throw new Error("No attendance record found");
+
+  const subs = Array.isArray(attendance.substitutes) ? attendance.substitutes : [];
+  subs.push({ name });
+
+  await supabase
+    .from("attendance")
+    .update({ substitutes: subs, updated_at: new Date().toISOString() })
+    .eq("id", attendance.id);
+
+  revalidatePath("/");
+}
+
+export async function removeSubstitute(gameId: string, index: number) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+
+  const { data: attendance } = await supabase
+    .from("attendance")
+    .select("id, substitutes")
+    .eq("player_id", user.id)
+    .eq("game_id", gameId)
+    .single();
+
+  if (!attendance) throw new Error("No attendance record found");
+
+  const subs = Array.isArray(attendance.substitutes) ? [...attendance.substitutes] : [];
+  subs.splice(index, 1);
+
+  await supabase
+    .from("attendance")
+    .update({ substitutes: subs, updated_at: new Date().toISOString() })
+    .eq("id", attendance.id);
+
+  revalidatePath("/");
+}
+
 // ── Player settings actions ──
 
 export async function updatePlayerSettings(data: {
